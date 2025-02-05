@@ -31,8 +31,8 @@ jobs:
       # Step 4: Merge upstream changes into your fork's branch
       - name: Merge upstream changes
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git merge upstream/main --no-edit # Merge without opening an editor
 
       # Step 5: Push the updated branch back to your fork
