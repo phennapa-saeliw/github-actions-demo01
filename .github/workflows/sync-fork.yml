@@ -33,9 +33,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git merge upstream/main --allow-unrelated-histories --no-edit # Allow merging unrelated histories
+          git rebase upstream/main
 
       # Step 5: Push the updated branch back to your fork
       - name: Push changes to fork
         run: |
-          git push origin main
+          git push origin main --force
