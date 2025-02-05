@@ -21,8 +21,8 @@ jobs:
         run: |
           git remote add upstream https://github.com/phennapa/github-actions-demo01.git
           git fetch upstream
-          git merge upstream/main --no-commit --allow-unrelated-histories
-          git commit -m "Sync with upstream"
+          git merge upstream/main --no-edit || echo "Merge conflict, please resolve manually."
+          
 
       - name: Push changes
         run: |
