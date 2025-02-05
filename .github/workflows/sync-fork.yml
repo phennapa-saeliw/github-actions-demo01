@@ -1,0 +1,41 @@
+name: Sync Fork with Upstream
+
+on:
+  # Trigger the workflow manually or on a schedule
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out your forked repository
+      - name: Checkout forked repo
+        uses: actions/checkout@v3
+        with:
+          repository: phennapa-saeliw/github-actions-demo01
+          ref: main # Specify the branch you want to sync (e.g., main)
+
+      # Step 2: Add the upstream repository as a remote
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/phennapa/github-actions-demo01.git
+
+      # Step 3: Fetch updates from the upstream repository
+      - name: Fetch upstream changes
+        run: |
+          git fetch upstream
+
+      # Step 4: Merge upstream changes into your fork's branch
+      - name: Merge upstream changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git merge upstream/main --no-edit # Merge without opening an editor
+
+      # Step 5: Push the updated branch back to your fork
+      - name: Push changes to fork
+        run: |
+          git push origin main
