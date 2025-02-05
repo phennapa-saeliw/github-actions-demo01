@@ -1,0 +1,32 @@
+name: Sync Appsmith Official Schedule by tag
+
+on: 
+  schedule:
+    - cron:  '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-latest-version:
+    run-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Add Upstream
+        run: |
+          git remote add upstream https://github.com/phennapa/github-actions-demo01.git
+
+      - name: fetch latest upstream versions, then merge to 'main'
+        id: get-latest-version
+        run: |
+          SYNC_VERSION="v$(curl --write-out '%{redirect_url}' 'https://github.com/phennapa/github-actions-demo01/releases/latest' | sed 's,.*/v,,')"
+          echo "new version $SYNC_VERSION"
+          git fetch upstream refs/tags/$SYNC_VERSION:refs/tags/$SYNC_VERSION
+          git merge $SYNC_VERSION
+
+      - name: push to remote origin
+        run: |
+          git push origin main
