@@ -21,11 +21,9 @@ jobs:
 
       - name: Sync with upstream
         run: |
-          git remote add upstream https://github.com/phennapa/github-actions-demo01.git
+          git remote add upstream https://github.com/phennapa/github-actions-demo01.git || true
           git fetch upstream
-          git merge upstream/main --ff-only || echo "Merge failed, resolving conflicts manually."
-          
-
-      - name: Push changes
-        run: |
+          git checkout main
+          git merge --no-edit upstream/main || echo "Merge conflict detected. Please resolve manually."
           git push origin main
+
