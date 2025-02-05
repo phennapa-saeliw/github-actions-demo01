@@ -1,0 +1,24 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync with upstream
+        run: |
+          git remote add upstream https://github.com/phennapa/github-actions-demo01.git
+          git fetch upstream
+          git merge upstream/main --no-commit --allow-unrelated-histories
+          git commit -m "Sync with upstream"
+
+      - name: Push changes
+        run: |
+          git push origin
