@@ -33,9 +33,19 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git rebase upstream/main
+          git rebase upstream/main || true
 
-      # Step 5: Push the updated branch back to your fork
+      # Step 5: Automatically resolve conflicts by taking upstream changes
+      - name: Resolve conflicts
+        if: ${{ failure() }}
+        run: |
+          while git status | grep -q 'Unmerged paths'; do
+            git checkout --theirs $(git status --porcelain | awk '{print $2}')
+            git add .
+            git rebase --continue
+          done
+
+      # Step 6: Push the updated branch back to your fork
       - name: Push changes to fork
         run: |
           git push origin main --force
