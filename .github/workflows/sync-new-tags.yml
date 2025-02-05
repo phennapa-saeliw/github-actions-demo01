@@ -35,7 +35,5 @@ jobs:
           git add .
           git commit -m "Resolved merge conflicts"
         fi
-
-    - name: Push to remote origin
-      run: |
         git push origin new-tag-$SYNC_VERSION
+
