@@ -33,7 +33,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git merge upstream/main --no-edit # Merge without opening an editor
+          git merge upstream/main --allow-unrelated-histories --no-edit # Allow merging unrelated histories
 
       # Step 5: Push the updated branch back to your fork
       - name: Push changes to fork
