@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Configure Git
         run: |
@@ -21,9 +23,9 @@ jobs:
         run: |
           git remote add upstream https://github.com/phennapa/github-actions-demo01.git
           git fetch upstream
-          git merge upstream/main --no-edit || echo "Merge conflict, please resolve manually."
+          git merge upstream/main --ff-only || echo "Merge failed, resolving conflicts manually."
           
 
       - name: Push changes
         run: |
-          git push origin
+          git push origin main
