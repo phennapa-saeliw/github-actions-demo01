@@ -1,4 +1,4 @@
-name: Sync Appsmith Official Schedule by tag
+name: Sync Schedule by tag
 
 on: 
   schedule:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   sync-latest-version:
-    run-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
 
       - name: Checkout repository
