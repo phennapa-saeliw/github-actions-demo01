@@ -12,6 +12,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Sync with upstream
         run: |
           git remote add upstream https://github.com/phennapa/github-actions-demo01.git
