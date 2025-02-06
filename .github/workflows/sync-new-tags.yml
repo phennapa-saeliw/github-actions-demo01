@@ -1,6 +1,7 @@
 name: Sync Schedule by tag
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -23,42 +24,37 @@ jobs:
         git fetch upstream
 
     - name: Fetch latest upstream versions, then merge to 'main'
-      id: sync
+      id: fetch-and-merge
       run: |
         SYNC_VERSION="v$(curl --write-out '%{redirect_url}' 'https://github.com/phennapa/github-actions-demo01/releases/latest' | sed 's,.*/v,,')"
-        echo "New version: $SYNC_VERSION"
-        
-        BRANCH_NAME="new-tag-$SYNC_VERSION"
-        
-        # Check if branch already exists
-        if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
-          echo "Branch $BRANCH_NAME already exists. Skipping PR creation."
-          echo "BRANCH_CREATED=false" >> $GITHUB_ENV
-          exit 0
-        fi
-        
-        # Create new branch and merge changes
-        git checkout -b "$BRANCH_NAME"
+        echo "new version $SYNC_VERSION"
+        git checkout -b new-tag-$SYNC_VERSION
         git merge --allow-unrelated-histories upstream/main || true
-        
         if [ -n "$(git ls-files --unmerged)" ]; then
           echo "Resolving merge conflicts..."
+          # Automatically choose the upstream version for conflicting files
           git checkout --theirs .
           git add .
           git commit -m "Resolved merge conflicts"
         fi
-        
-        git push origin "$BRANCH_NAME"
-        echo "BRANCH_CREATED=true" >> $GITHUB_ENV
-        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+        git push origin new-tag-$SYNC_VERSION
+        echo "::set-output name=branch_created::true"
 
     - name: Notify via GitHub Pull Request
-      if: env.BRANCH_CREATED == 'true'
+      if: steps.fetch-and-merge.outputs.branch_created == 'true'
+      uses: peter-evans/create-pull-request@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'Sync latest version'
+        title: 'Sync latest version v${{ env.SYNC_VERSION }}'
+        body: 'This PR was automatically created to sync the latest version.'
+        base: main
+        head: new-tag-${{ env.SYNC_VERSION }}
+
+    - name: Post Checkout repository
       run: |
-        gh pr create \
-          --title "🚀 Sync latest upstream changes: ${{ env.BRANCH_NAME }}" \
-          --body "This PR was automatically created to sync the latest upstream changes into the main branch." \
-          --base main \
-          --head ${{ env.BRANCH_NAME }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Any post-checkout steps if needed
+
+    - name: Complete job
+      run: |
+        echo "Job completed successfully"
