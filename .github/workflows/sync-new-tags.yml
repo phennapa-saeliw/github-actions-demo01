@@ -1,7 +1,6 @@
 name: Sync Schedule by tag
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -40,7 +39,7 @@ jobs:
         git push origin new-tag-$SYNC_VERSION
         echo "::set-output name=branch_created::true"
 
-    - name: Notify via GitHub Pull Request
+    - name: Create Pull Request
       if: steps.fetch-and-merge.outputs.branch_created == 'true'
       uses: peter-evans/create-pull-request@v4
       with:
@@ -50,6 +49,20 @@ jobs:
         body: 'This PR was automatically created to sync the latest version.'
         base: main
         head: new-tag-${{ env.SYNC_VERSION }}
+
+    - name: Notify via GitHub Issue
+      if: steps.fetch-and-merge.outputs.branch_created == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issueTitle = 'New Pull Request Created';
+          const issueBody = `A new pull request has been created to sync the latest version v${process.env.SYNC_VERSION}.`;
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: issueTitle,
+            body: issueBody
+          });
 
     - name: Post Checkout repository
       run: |
