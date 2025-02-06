@@ -52,17 +52,6 @@ jobs:
         echo "BRANCH_CREATED=true" >> $GITHUB_ENV
         echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
-    - name: Notify via GitHub Pull Request
-      if: env.BRANCH_CREATED == 'true'
-      run: |
-        gh pr create \
-          --title "🚀 Sync latest upstream changes: ${{ env.BRANCH_NAME }}" \
-          --body "This PR was automatically created to sync the latest upstream changes into the main branch." \
-          --base main \
-          --head ${{ env.BRANCH_NAME }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Create Pull Request via GitHub API
       if: env.BRANCH_CREATED == 'true'
       run: |
