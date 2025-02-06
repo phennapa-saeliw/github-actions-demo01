@@ -23,30 +23,42 @@ jobs:
         git fetch upstream
 
     - name: Fetch latest upstream versions, then merge to 'main'
+      id: sync
       run: |
         SYNC_VERSION="v$(curl --write-out '%{redirect_url}' 'https://github.com/phennapa/github-actions-demo01/releases/latest' | sed 's,.*/v,,')"
-        echo "new version $SYNC_VERSION"
-        git checkout -b new-tag-$SYNC_VERSION
+        echo "New version: $SYNC_VERSION"
+        
+        BRANCH_NAME="new-tag-$SYNC_VERSION"
+        
+        # Check if branch already exists
+        if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+          echo "Branch $BRANCH_NAME already exists. Skipping PR creation."
+          echo "BRANCH_CREATED=false" >> $GITHUB_ENV
+          exit 0
+        fi
+        
+        # Create new branch and merge changes
+        git checkout -b "$BRANCH_NAME"
         git merge --allow-unrelated-histories upstream/main || true
+        
         if [ -n "$(git ls-files --unmerged)" ]; then
           echo "Resolving merge conflicts..."
-          # Automatically choose the upstream version for conflicting files
           git checkout --theirs .
           git add .
           git commit -m "Resolved merge conflicts"
         fi
-        git push origin new-tag-$SYNC_VERSION
+        
+        git push origin "$BRANCH_NAME"
+        echo "BRANCH_CREATED=true" >> $GITHUB_ENV
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
-    - name: Notify via GitHub Issue
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const issueTitle = 'Sync Latest Version Completed';
-          const issueBody = 'The sync-latest-version job has completed successfully.';
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: issueTitle,
-            body: issueBody
-          });
-
+    - name: Notify via GitHub Pull Request
+      if: env.BRANCH_CREATED == 'true'
+      run: |
+        gh pr create \
+          --title "🚀 Sync latest upstream changes: ${{ env.BRANCH_NAME }}" \
+          --body "This PR was automatically created to sync the latest upstream changes into the main branch." \
+          --base main \
+          --head ${{ env.BRANCH_NAME }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
