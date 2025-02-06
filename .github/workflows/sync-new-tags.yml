@@ -37,3 +37,16 @@ jobs:
         fi
         git push origin new-tag-$SYNC_VERSION
 
+    - name: Notify via GitHub Issue
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issueTitle = 'Sync Latest Version Completed';
+          const issueBody = 'The sync-latest-version job has completed successfully.';
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: issueTitle,
+            body: issueBody
+          });
+
